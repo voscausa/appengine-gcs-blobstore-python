@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style type="text/css">.no-markers {
+        list-style: none;
+    }</style>
+    <title>Blob Upload</title>
+</head>
+<body>
+<!--suppress HtmlUnknownTarget -->
+<form name="upload_form" action="/readme" enctype="multipart/form-data" method="post">
+    Upload serving-url options :
+    <ul class="no-markers">
+        <li><label><input type="radio" name="use_blobstore"
+                          {% if not use_blobstore %}checked="checked" {% endif %}value="F">GCS host (Google serves the blob for you)</label></li>
+        <li><label><input type="radio" name="use_blobstore"
+                          {% if use_blobstore %}checked="checked" {% endif %}value="T">Blobkey (served by your BlobstoreDownloadHandler)</label></li>
+    </ul>
+    <div><input type="file" name="file"/></div>
+    <div><br><input type="submit" value="Upload" formaction="/blob_upload" formmethod="post"></div>
+</form>
+{%- block links -%}
+{% if readme %}
+{{ readme|safe }}
+{% else %}
+<p>More info in this <a href="#" onclick="document.upload_form.submit();return false">README</a></p>
+{% endif %}
+{%- endblock -%}
+</body>
+</html>

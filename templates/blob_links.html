@@ -1,0 +1,12 @@
+{%- extends 'blob_upload.html' -%}
+{%- block links -%}
+{% if failed %}
+<h3>!! Upload FAILED: {{ failed }} !!</h3>
+{% else %}
+<p><b>Serving url</b> (download) :</p>
+<ul class="no-markers">
+    <li>Zip archive : <a href="{{ bzf_url }}">{{ bzf_name }}</a></li>
+    <li>File upload : <a href="{{ bf_url }}">{{ bf_name }}</a></li>
+</ul>
+{% endif %}
+{%- endblock -%}

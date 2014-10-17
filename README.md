@@ -1,15 +1,15 @@
 ## App Engine cloudstorage blobstore replacement using SDK and GAE production
 
-This code shows how to read and write blobs and how to create a blob serving url (GCS host or blobkey).
+This code shows how to read and write blobs and how to create a blob serving url (GCS host or blobkey).  
 Writing blob files to GCS is a replacement for the deprecated blobstore.Files API.
 
 The blob files can be images or other files like html, css, js and pdf.  
 The free default bucket in Google Cloud Storage (GCS) is used to store the blobs.  
 From the docs: An application can use the [default GCS bucket](https://developers.google.com/appengine/docs/python/googlecloudstorageclient/activate#Using_the_Default_GCS_Bucket), which provides an already configured bucket with [free quota](https://developers.google.com/appengine/docs/quotas#Default_Gcs_Bucket).
 
-The code always uses the Images get_serving_url for images (gif/png/jpg)
-This image serving url allows dynamic resizing and cropping.
-The use_blobstore option configures the serving_url type for non-images.
+The code always uses the Images get_serving_url for images (gif/png/jpg).  
+This image serving url allows dynamic resizing and cropping.  
+The use_blobstore option configures the serving_url type for non-images.  
 The use_blobstore default (= True) can be overwritten in appengine_config.py
 
 blob_upload contains the code to upload a file to cloudstorage:

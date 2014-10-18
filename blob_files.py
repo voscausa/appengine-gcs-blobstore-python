@@ -17,7 +17,7 @@ import logging
 
 config = lib_config.register('blob_files', {
     'USE_BLOBSTORE': True,
-    'ARCHIVE_PATH': '/archives/Blobfiles.zip',
+    'ARCHIVE_PATH': '/archives/BlobFiles.zip',
     'UTF_8_FILE_EXTENSIONS': ['js', 'css', 'html', 'txt', 'text', 'py', 'xml', 'json', 'md', 'csv']
 })
 
@@ -76,8 +76,7 @@ class BlobFiles(ndb.Model):
 
         content_type = mimetypes.guess_type(self.filename)[0]
         if not content_type:
-            logging.error('Mimetype not guessed for: %s' % self.filename)
-            return None
+            raise Exception('Mimetype not guessed for %s. Additional info was logged' % self.filename)
 
         if self.extension in config.UTF_8_FILE_EXTENSIONS:
             content_type += b'; charset=utf-8'
@@ -87,8 +86,7 @@ class BlobFiles(ndb.Model):
                 f.write(blob)
             return self.gcs_filename
         except Exception, e:
-            logging.error('GCS write error: ' + str(e))
-            raise Exception('Blob write failed. Additional info was logged')
+            raise Exception('Blob write failed for %s, exception: %s. Additional info was logged' % (self.filename, str(e)))
 
     @classmethod
     def list_gcs_file_names(cls, bucket=None, folder='/'):
@@ -129,20 +127,22 @@ class BlobFiles(ndb.Model):
 def blob_archive(new_bf=None):
     """ bonus: save all BlobFiles in a zip archive """
 
-    def blobfiles():
+    @ndb.tasklet
+    def callback(bf_key):
+        """ key_only query and get() lookup for entity consistency """
+
+        bf = yield bf_key.get_async()
+        raise ndb.Return(bf)
+
+    def blobfiles(insert, archive_key):
         """ We do not use ancestor queries. This Generator takes care of index and entity inconsistencies
             https://cloud.google.com/developers/articles/balancing-strong-and-eventual-consistency-with-google-cloud-datastore/
         """
 
-        insert = new_bf is not None
-
-        for key in BlobFiles.query().iter(keys_only=True):
-            if key.id() != archive_file:
-                if insert and new_bf.key == key:
-                    insert = False  # no index inconsistency
-                # key_only query and get() lookup for entity consistency
-                bf = key.get()
-                yield bf
+        for bf in BlobFiles.query().filter(BlobFiles.key != archive_key).map(callback, keys_only=True):
+            if insert and new_bf.key == bf.key:
+                insert = False  # no index inconsistency
+            yield bf
 
         # make sure the new file is inserted in the archive if the index is not consistent yet
         if insert:
@@ -150,6 +150,7 @@ def blob_archive(new_bf=None):
 
     # add all files to archive, except the archive zipfile itself
     (archive_folder, _, archive_file) = config.ARCHIVE_PATH.rpartition('/')
+
     if new_bf and new_bf.filename != archive_file:
 
         new_zf = BlobFiles.new(archive_file, folder=archive_folder)
@@ -157,7 +158,7 @@ def blob_archive(new_bf=None):
                       options={b'x-goog-acl': b'public-read', b'cache-control': b'private, max-age=0, no-cache'}) as nzf:
 
             with zipfile.ZipFile(nzf, 'w') as zf:
-                for each in blobfiles():
+                for each in blobfiles(new_bf is not None, new_zf.key):
                     # We also could have used : each.blob_read()
                     logging.info(each.filename)
                     blob = each.blob_reader().read()

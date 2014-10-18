@@ -36,7 +36,7 @@ class BaseHandler(webapp2.RequestHandler):
 
 
 class BlobUpload(BaseHandler):
-    """ upload to cloudstorage and save serving_url in GcsFiles """
+    """ upload to cloudstorage and save serving_url in BlobFiles """
 
     def get(self):
         """ upload form """
@@ -78,7 +78,7 @@ class BlobUpload(BaseHandler):
             else:
                 context.update(dict(failed='Overwrite blocked. The GCS file already exists in another bucket and/or folder'))
         else:
-            logging.error('No file data')
+            logging.warning('No file data')
 
         self.render_template('blob_links.html', **context)
 

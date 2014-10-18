@@ -23,8 +23,8 @@ config = lib_config.register('blob_files', {
 
 
 class BlobFiles(ndb.Model):
-    """ GCS files names and serving urls for the app_default_bucket
-        GCS files can have a blobkey. A GCS blobkey does not have a BlobInfo object.
+    """ Contains GCS files names and serving urls for the app_default_bucket
+        GCS files can have a blobkey. A GCS blobkey does NOT have a BlobInfo object.
         A Blobfile entity is like a blobstore.BlobInfo object
     """
 
@@ -40,7 +40,7 @@ class BlobFiles(ndb.Model):
     @classmethod
     def new(cls, filename, bucket=None, folder='/'):
         """ filename is the key, which makes an entity unique. But it's not allowed to overwrite a
-            BlobFiles entity, if the new gcs_filename is not equal to the existing gcs_filename
+            BlobFiles entity, if the new gcs_filename is not equal to the existing gcs path
             use_blobstore controls the type of serving_url. True: use Blobkey; False: use gcs_filename
         """
 
@@ -144,11 +144,11 @@ def blob_archive(new_bf=None):
                 insert = False  # no index inconsistency
             yield bf
 
-        # make sure the new file is inserted in the archive if the index is not consistent yet
+        # if the new_bf entity is not yet present in BlobFiles (due to index inconsistencies), it will be inserted here
         if insert:
             yield new_bf
 
-    # add all files to archive, except the archive zipfile itself
+    # add all files to archive, except the archive zipfile itself which has a reserved name (BlobFiles key)
     (archive_folder, _, archive_file) = config.ARCHIVE_PATH.rpartition('/')
 
     if new_bf and new_bf.filename != archive_file:
@@ -157,6 +157,7 @@ def blob_archive(new_bf=None):
         with gcs.open(new_zf.gcs_filename, 'w', content_type=b'multipart/x-zip',
                       options={b'x-goog-acl': b'public-read', b'cache-control': b'private, max-age=0, no-cache'}) as nzf:
 
+            # nzf is a cloudstorage.storage_api.StreamingBuffer, which can be pickled to append data in a chained task
             with zipfile.ZipFile(nzf, 'w') as zf:
                 for each in blobfiles(new_bf is not None, new_zf.key):
                     # We also could have used : each.blob_read()

@@ -18,7 +18,7 @@ import logging
 config = lib_config.register('blob_files', {
     'USE_BLOBSTORE': True,
     'ARCHIVE_PATH': '/archives/BlobFiles.zip',
-    'UTF_8_FILE_EXTENSIONS': ['js', 'css', 'html', 'txt', 'text', 'py', 'xml', 'json', 'md', 'csv']
+    'UTF_8_FILE_EXTENSIONS': ['js', 'css', 'html', 'txt', 'text', 'py', 'xml']
 })
 
 
@@ -76,12 +76,12 @@ class BlobFiles(ndb.Model):
 
         content_type = mimetypes.guess_type(self.filename)[0]
         if not content_type:
-            raise Exception('Mimetype not guessed for %s. Additional info was logged' % self.filename)
+            logging.warning('Mimetype not guessed for: %s', self.filename)
 
-        if self.extension in config.UTF_8_FILE_EXTENSIONS:
+        if content_type and self.extension in config.UTF_8_FILE_EXTENSIONS:
             content_type += b'; charset=utf-8'
         try:
-            with gcs.open(self.gcs_filename, 'w', content_type=content_type,
+            with gcs.open(self.gcs_filename, 'w', content_type=content_type or b'binary/octet-stream',
                           options={b'x-goog-acl': b'public-read'}) as f:
                 f.write(blob)
             return self.gcs_filename

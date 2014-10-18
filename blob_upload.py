@@ -55,7 +55,7 @@ class BlobUpload(BaseHandler):
 
     @ndb.synctasklet
     def post(self):
-        """ upload the file en show file and archive links """
+        """ upload the file. Result: show file and archive links """
 
         context = dict(failed='No file data', use_blobstore=(True if self.request.get('use_blobstore') == 'T' else False))
 

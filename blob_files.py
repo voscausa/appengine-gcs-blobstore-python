@@ -164,7 +164,7 @@ def blob_archive(new_bf=None):
                     blob = each.blob_reader().read()
                     zf.writestr(each.filename.encode('utf-8'), blob)
 
-        new_zf.put()
+        new_zf.put_async()
     else:
         new_zf = new_bf
 

@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import webapp2
 from webapp2_extras import jinja2
+from google.appengine.ext import ndb
 import blob_files
 import blob_serve
 import markdown
@@ -52,6 +53,7 @@ class BlobUpload(BaseHandler):
         readme = markdown.markdown(open(README, 'r').read(), output_format='html5')  # options: markdown.__init__
         self.render_template('blob_upload.html', use_blobstore=use_blobstore, readme=readme)
 
+    @ndb.synctasklet
     def post(self):
         """ upload the file en show file and archive links """
 
@@ -65,7 +67,7 @@ class BlobUpload(BaseHandler):
             bf = blob_files.BlobFiles.new(filename, folder=GCS_UPLOAD_FOLDER)
             if bf:
                 bf.blob_write(file_data)
-                bf.put()
+                bf.put_async()
                 logging.info('Uploaded and saved in default GCS bucket : ' + bf.gcs_filename)
 
                 # update zip archive. make sure this (new) bf will be archived
@@ -85,4 +87,4 @@ routes = [
     webapp2.Route(r'/readme', handler='blob_upload.BlobUpload:readme'),
     ('/use_blobstore/([^/]+)?', blob_serve.UseBlobstore)
 ]
-app = webapp2.WSGIApplication(routes=routes, debug=True)
+app = ndb.toplevel(webapp2.WSGIApplication(routes=routes, debug=True))

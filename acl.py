@@ -72,12 +72,19 @@ class InsertAcl(webapp2.RequestHandler):
 
     def get(self):
 
+        bucket_object = 'codes.csv'
         e_mail = self.request.get('e_mail', default_value=None)
         if not e_mail:
             self.response.write('No value provided for argument e_mail')
             return
 
-        response = insert_gcs_user_acl('codes.csv', e_mail=e_mail)
+        response = insert_gcs_user_acl(bucket_object, e_mail=e_mail)
+        if response == 0:
+            self.response.write('<p>TestAcl finished. Authenticated user : %s can now download the object using<br>' % e_mail)
+            download_link = 'https://console.developers.google.com/m/cloudstorage/b/%s/o/%s' % (default_bucket, bucket_object)
+            self.response.write('<br><a href="%s">%s</a></p>' % (download_link, download_link))
+            return
+
         self.response.write('TestAcl finished : %s' % str(response))
 
 
@@ -85,10 +92,11 @@ class DeleteAcl(webapp2.RequestHandler):
 
     def get(self):
 
+        bucket_object = 'codes.csv'
         e_mail = self.request.get('e_mail', default_value=None)
         if not e_mail:
             self.response.write('No value provided for argument e_mail')
             return
 
-        response = delete_gcs_user_acl('codes.csv', e_mail, allow_404=True)
+        response = delete_gcs_user_acl(bucket_object, e_mail, allow_404=True)
         self.response.write('Delete finished : %s' % str(response))

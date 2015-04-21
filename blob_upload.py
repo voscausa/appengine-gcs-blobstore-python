@@ -85,6 +85,8 @@ class BlobUpload(BaseHandler):
 routes = [
     webapp2.Route(r'/blob_upload', handler=BlobUpload),
     webapp2.Route(r'/readme', handler='blob_upload.BlobUpload:readme'),
-    ('/use_blobstore/([^/]+)?', blob_serve.UseBlobstore)
+    ('/use_blobstore/([^/]+)?', blob_serve.UseBlobstore),
+    webapp2.Route(r'/acl_insert', handler='acl.InsertAcl'),
+    webapp2.Route(r'/acl_delete', handler='acl.DeleteAcl'),
 ]
 app = ndb.toplevel(webapp2.WSGIApplication(routes=routes, debug=True))

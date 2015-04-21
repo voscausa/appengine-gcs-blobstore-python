@@ -27,8 +27,8 @@ def acl_fetch(fetch_function):
             else:
                 logging.info(response.content)
                 return 0
-        except (urlfetch.DownloadError, DeadlineExceededError):
-            logging.warning('fetch download or deadline retry %d ' % (retry + 1))
+        except (urlfetch.DownloadError, DeadlineExceededError, app_identity.BackendDeadlineExceeded):
+            logging.warning('download or deadline retry %d ' % (retry + 1))
             retry += 1
     return None
 

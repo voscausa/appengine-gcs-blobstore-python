@@ -52,5 +52,3 @@ GCS client library installation on Windows 7:
     C:\Python27\scripts>pip install GoogleAppEngineCloudStorageClient -t <my_app_directory_root>
     
 Bonus insert or delete a READER acl-entry for an e-mail address using the GCS json API.
-
-    You cannot use or test these ACL functions in the SDK !!! (not implemented)

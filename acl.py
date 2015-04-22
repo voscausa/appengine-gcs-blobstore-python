@@ -9,7 +9,12 @@ import json
 import logging
 
 SCOPE_FULL_CONTROL = 'https://www.googleapis.com/auth/devstorage.full_control'
-default_bucket = app_identity.get_default_gcs_bucket_name()
+
+# to make these acl functions work in the SDK:
+# add --appidentity=email_address and --appidentity_private_key_path=d:/.../gcs-blobstore.pem to the appcfg.py options
+# use openssl to convert the p12 in a RSA pem key. For windows use:
+# openssl pkcs12 -in gcs-blobstore.p12  -nocerts -nodes -passin pass:notasecret | openssl rsa -out gcs-blobstore.pem
+default_bucket = 'gcs-blobstore.appspot.com'  # app_identity.get_default_gcs_bucket_name()
 
 
 def acl_fetch(fetch_function):
@@ -69,6 +74,7 @@ def delete_gcs_user_acl(bucket_object, e_mail, allow_404=False):
 
 
 class InsertAcl(webapp2.RequestHandler):
+    """ insert READER ACL user entry for bucket_object """
 
     def get(self):
 
@@ -89,6 +95,7 @@ class InsertAcl(webapp2.RequestHandler):
 
 
 class DeleteAcl(webapp2.RequestHandler):
+    """ remove READER ACL user entry for bucket_object """
 
     def get(self):
 

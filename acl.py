@@ -6,15 +6,13 @@ from google.appengine.api import app_identity
 from google.appengine.api import urlfetch
 from google.appengine.runtime import DeadlineExceededError
 import json
+import os
 import logging
 
 SCOPE_FULL_CONTROL = 'https://www.googleapis.com/auth/devstorage.full_control'
 
-# to make these acl functions work in the SDK:
-# add --appidentity=email_address and --appidentity_private_key_path=d:/.../gcs-blobstore.pem to the appcfg.py options
-# use openssl to convert the p12 in a RSA pem key. For windows use:
-# openssl pkcs12 -in gcs-blobstore.p12  -nocerts -nodes -passin pass:notasecret | openssl rsa -out gcs-blobstore.pem
-default_bucket = 'gcs-blobstore.appspot.com'  # app_identity.get_default_gcs_bucket_name()
+# Use the default bucket in the cloud and not the local one from app_identity
+default_bucket = '%s.appspot.com' % os.environ['APPLICATION_ID'].split('~', 1)[1]
 
 
 def acl_fetch(fetch_function):
@@ -86,12 +84,12 @@ class InsertAcl(webapp2.RequestHandler):
 
         response = insert_gcs_user_acl(bucket_object, e_mail=e_mail)
         if response == 0:
-            self.response.write('<p>TestAcl finished. Authenticated user : %s can now download the object using<br>' % e_mail)
+            self.response.write('<p>InsertAcl finished. Authenticated user : %s can now download the object using<br>' % e_mail)
             download_link = 'https://console.developers.google.com/m/cloudstorage/b/%s/o/%s' % (default_bucket, bucket_object)
             self.response.write('<br><a href="%s">%s</a></p>' % (download_link, download_link))
             return
 
-        self.response.write('TestAcl finished : %s' % str(response))
+        self.response.write('InsertAcl finished : %s' % str(response))
 
 
 class DeleteAcl(webapp2.RequestHandler):
@@ -106,4 +104,4 @@ class DeleteAcl(webapp2.RequestHandler):
             return
 
         response = delete_gcs_user_acl(bucket_object, e_mail, allow_404=True)
-        self.response.write('Delete finished : %s' % str(response))
+        self.response.write('DeleteAcl fnished : %s' % str(response))

@@ -1,10 +1,11 @@
 application: gcs-blobstore
-version: 2
+version: 3
 runtime: python27
 api_version: 1
 threadsafe: yes
 
 handlers:
+
 - url: /favicon.ico
   static_files: static/favicon.ico
   upload: static/favicon.ico
